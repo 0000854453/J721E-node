@@ -1,10 +1,11 @@
-            - name: terraform-plan-storage
+name: terraform-plan-storage
   # You may pin to the exact commit or the version.
   # uses: cloudposse/github-action-terraform-plan-storage@55b5d342c1eefee79e661b2709e91b19b4361c6d
   uses: cloudposse/github-action-terraform-plan-storage@1.14.0
   with:
     # which action to perform. Valid values are: 'storePlan', 'getPlan', 'taintPlan'
-    action: 'getPlan' # default is storePlan
+    action: 
+    - 'getPlan' # default is storePlan
     # the name of the Azure Blob Storage account to store the plan file
     blobAccountName: # optional
     # the name of the Azure Blob Storage container to store the plan file
