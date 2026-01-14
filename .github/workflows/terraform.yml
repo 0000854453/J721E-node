@@ -41,70 +41,26 @@
 #       uses: hashicorp/setup-terraform@v1
 #       with:
 #         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-name: 'Terraform'
-
 on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch: 
-
-permissions:
-  contents: read
+  workflow_call:
+    secrets:
+      TF_API_TOKEN:
+        description: 'A terraform api token passed from the caller workflow'
+        required: true
 
 jobs:
-  terraform:
-    name: 'Terraform'
+
+  pass-secret-to-action:
     runs-on: macos-14
-    environment: production
-
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    defaults:
-      run:
-        shell: bash
-    env:
-        
-        cli_config_credentials_hostname: 'Developerf.local'
-        terraform_version: '1.14.3'  
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v4
+    # passing the secret to an action
+      - name: Pass the received secret to an action
+        uses: ./.github/actions/my-action
+        with:
+          token: ${{ secrets.TF_API_TOKEN }}
+      - name: terraform-plan-storage
+        uses: .cloudposse/github-action-terraform-plan-storage@1.14.0
+        with:
+          token: ${{ secrets.TF_API_TOKEN }}
 
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses:  hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1
-      with:
-        cli_config_credentials_hostname: ${{ env.CLI_CONFIG_CREDENTIALS_HOSTNAME }}
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-        terraform_version: ${{ env.TERRAFORM_VERSION }}
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      run: terraform init
-
-      # On push to "main", build or change infrastructure according to Terraform configuration files
-      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/"main"' && github.event_name == 'on.push'
-      run: terraform apply -auto-approve 
-    - name: Store Plan
-      uses: hashicorp/setup-terraform@v2.0.3
-      id: store-plan
-      with:
-        action: storePlan
-        planPath: my-plan.tfplan
-        component: mycomponent
-        stack: core-mycomponent-use1
-        tableName: acme-terraform-plan-metadata
-        bucketName: acme-terraform-plans
-
-    - name: Get Plan
-      uses: cloudposse/github-action-terraform-plan-storage@1.14.0
-      id: get-plan
-      with:
-        action: getPlan
-        planPath: my-plan.tfplan
-        component: mycomponent
-        stack: core-mycomponent-use1
-        tableName: acme-terraform-plan-metadata
-        bucketName: acme-terraform-plans
+          
