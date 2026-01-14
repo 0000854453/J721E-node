@@ -1,8 +1,10 @@
 name: terraform plan storage
 
 on: 
-  workflow-dispatch:
-    env:
+  schedule:
+   - cron: 5 0 * * 0
+
+env:
           TERRAFORM_VERSION: 1.14.3
 
 permissions:
@@ -10,19 +12,20 @@ permissions:
 
 jobs:
   getPlan:
-  strategy:
+        strategy:
           fail-fast: false
-          if: github.repository == 'nodejs/node'
-          runs-on: macos-14
-          steps:
-          - name: terraform-plan-storage
-          # You may pin to the exact commit or the version.
-          # uses: cloudposse/github-action-terraform-plan-storage@55b5d342c1eefee79e661b2709e91b19b4361c6d
-          - uses: cloudposse/github-action-terraform-plan-storage@1.14.0
-            with:
-              version
-          # which action to perform. Valid values are: 'storePlan', 'getPlan', 'taintPlan'
-              action: getPlan # default is storePlan
+        if: github.repository == 'nodejs/node'
+        runs-on: macos-14
+        steps:
+        # You may pin to the exact commit or the version.
+        - uses: cloudposse/github-action-terraform-plan-storage@55b5d342c1eefee79e661b2709e91b19b4361c6d
+          with:
+            terraform-version: ${{ env.TERRAFORM_VERSION }}
+        - uses: cloudposse/github-action-terraform-plan-storage@1.14.0
+          with:
+            terraform-version: ${{ env.TERRAFORM_VERSION }}  
+    # which action to perform. Valid values are: 'storePlan', 'getPlan', 'taintPlan'
+    #  action: getPlan # default is storePlan
     # the name of the Azure Blob Storage account to store the plan file
     #blobAccountName: # optional
     # the name of the Azure Blob Storage container to store the plan file
