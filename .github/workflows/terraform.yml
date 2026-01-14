@@ -73,7 +73,7 @@ jobs:
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses:  hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1
       with:
         cli_config_credentials_hostname: ${{ env.CLI_CONFIG_CREDENTIALS_HOSTNAME }}
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
@@ -82,17 +82,13 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      run: terraform plan 
-
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/"main"' && github.event_name == 'workflow_dispatch'
+      if: github.ref == 'refs/heads/"main"' && github.event_name == 'on.push'
       run: terraform apply -auto-approve 
     - name: Store Plan
-      uses: cloudposse/github-action-terraform-plan-storage@v1
+      uses: hashicorp/setup-terraform@v2.0.3
       id: store-plan
       with:
         action: storePlan
@@ -103,7 +99,7 @@ jobs:
         bucketName: acme-terraform-plans
 
     - name: Get Plan
-      uses: cloudposse/github-action-terraform-plan-storage@v1
+      uses: cloudposse/github-action-terraform-plan-storage@1.14.0
       id: get-plan
       with:
         action: getPlan
